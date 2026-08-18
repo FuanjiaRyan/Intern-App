@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:my_app/auth_service.dart';
 import 'package:my_app/home_page.dart';
 
 class SignupPage extends StatefulWidget {
@@ -10,11 +12,13 @@ class SignupPage extends StatefulWidget {
 
 class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService authService = AuthService();
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +45,8 @@ class _SignupPageState extends State<SignupPage> {
                       hintText: "Enter Username",
                       labelText: "Username",
                     ),
-                    validator: (value){
-                      if(value == null || value.isEmpty){
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
                         return "Please enter username";
                       }
                     },
@@ -57,11 +61,11 @@ class _SignupPageState extends State<SignupPage> {
                       hintText: "Enter Email",
                       labelText: "Email",
                     ),
-                    validator: (value){
-                      if(value == null || value.isEmpty){
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
                         return "Please enter Email";
                       }
-                      if(!value.contains("@")) {
+                      if (!value.contains("@")) {
                         return "Invalid Email";
                       }
                     },
@@ -77,11 +81,11 @@ class _SignupPageState extends State<SignupPage> {
                       hintText: "Enter Password",
                       labelText: "Password",
                     ),
-                    validator: (value){
-                      if(value == null || value.isEmpty){
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
                         return "Please enter Password";
                       }
-                      if(value.length < 8){
+                      if (value.length < 8) {
                         return "Password must be at least 8 Characters";
                       }
                     },
@@ -97,11 +101,11 @@ class _SignupPageState extends State<SignupPage> {
                       hintText: "Enter Password",
                       labelText: "Confirm Password",
                     ),
-                    validator: (value){
-                      if(value == null || value.isEmpty){
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
                         return "Please enter password";
                       }
-                      if(value != _passwordController.text){
+                      if (value != _passwordController.text) {
                         return "Passwords do not match";
                       }
                     },
@@ -112,8 +116,24 @@ class _SignupPageState extends State<SignupPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
+                        try {
+                          final user = await AuthService().signUp(
+                            email: _emailController.text.trim(),
+                            password: _passwordController.text.trim(),
+                          );
+                          if (user != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Sign Up Successful")),
+                            );
+                          }
+                        } on FirebaseAuthException catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Sign Up Failed")),
+                          );
+                        }
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => HomePage()),
